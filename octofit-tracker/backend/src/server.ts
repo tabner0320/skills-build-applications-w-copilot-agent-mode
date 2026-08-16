@@ -40,7 +40,16 @@ async function startServer() {
   try {
     await connectToDatabase();
     app.listen(port, () => {
-      console.log(`Octofit API running on http://localhost:${port}`);
+      const codespaceName = process.env.CODESPACE_NAME;
+      const localhostUrl = `http://localhost:${port}`;
+      
+      if (codespaceName) {
+        const codespacesUrl = `https://${codespaceName}-${port}.app.github.dev`;
+        console.log(`Octofit API running on ${codespacesUrl}`);
+        console.log(`Local fallback: ${localhostUrl}`);
+      } else {
+        console.log(`Octofit API running on ${localhostUrl}`);
+      }
     });
   } catch (error) {
     console.error('Failed to start Octofit API:', error);
