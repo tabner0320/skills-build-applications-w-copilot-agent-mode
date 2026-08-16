@@ -44,7 +44,7 @@ async function startServer() {
       const localhostUrl = `http://localhost:${port}`;
       
       if (codespaceName) {
-        const codespacesUrl = `https://${codespaceName}-${port}.app.github.dev`;
+        const codespacesUrl = `https://${codespaceName}-8000.app.github.dev`;
         console.log(`Octofit API running on ${codespacesUrl}`);
         console.log(`Local fallback: ${localhostUrl}`);
       } else {
