@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { fetchTeams } from '../config/api';
+import { getApiUrl } from '../config/api';
 
 export default function Teams() {
   const [teams, setTeams] = useState([]);
@@ -10,7 +10,10 @@ export default function Teams() {
     const loadTeams = async () => {
       try {
         setLoading(true);
-        const data = await fetchTeams();
+
+        const response = await fetch(getApiUrl('/api/teams/'));
+        const data = await response.json();
+
         setTeams(Array.isArray(data) ? data : data.results || []);
       } catch (err) {
         setError(err.message);
@@ -22,27 +25,65 @@ export default function Teams() {
     loadTeams();
   }, []);
 
-  if (loading) return <div className="container mt-5"><p>Loading teams...</p></div>;
-  if (error) return <div className="container mt-5"><p className="text-danger">Error: {error}</p></div>;
+  if (loading) {
+    return (
+      <div className="container mt-5">
+        <p>Loading teams...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mt-5">
+        <p className="text-danger">Error: {error}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="container mt-5">
       <h2>Teams</h2>
+
       <div className="row">
         {teams.map((team) => (
           <div key={team._id} className="col-md-6 mb-4">
             <div className="card">
               <div className="card-body">
-                <h5 className="card-title">{team.name}</h5>
-                <p className="card-text">{team.description}</p>
+
+                <h5 className="card-title">
+                  {team.name}
+                </h5>
+
+                <p className="card-text">
+                  {team.description}
+                </p>
+
                 <div className="mb-2">
-                  <span className="badge" style={{ backgroundColor: team.color }}>
+                  <span
+                    className="badge"
+                    style={{ backgroundColor: team.color }}
+                  >
                     {team.color}
                   </span>
                 </div>
-                <p><strong>Captain:</strong> {team.captain?.firstName} {team.captain?.lastName || 'N/A'}</p>
-                <p><strong>Members:</strong> {team.members?.length || 0}</p>
-                <p><strong>Total Points:</strong> {team.totalPoints}</p>
+
+                <p>
+                  <strong>Captain:</strong>{' '}
+                  {team.captain?.firstName}{' '}
+                  {team.captain?.lastName || 'N/A'}
+                </p>
+
+                <p>
+                  <strong>Members:</strong>{' '}
+                  {team.members?.length || 0}
+                </p>
+
+                <p>
+                  <strong>Total Points:</strong>{' '}
+                  {team.totalPoints}
+                </p>
+
               </div>
             </div>
           </div>

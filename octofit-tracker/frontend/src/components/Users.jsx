@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { fetchUsers } from '../config/api';
+import { getApiUrl } from '../config/api';
 
 export default function Users() {
   const [users, setUsers] = useState([]);
@@ -10,7 +10,10 @@ export default function Users() {
     const loadUsers = async () => {
       try {
         setLoading(true);
-        const data = await fetchUsers();
+
+        const response = await fetch(getApiUrl('/api/users/'));
+        const data = await response.json();
+
         setUsers(Array.isArray(data) ? data : data.results || []);
       } catch (err) {
         setError(err.message);
@@ -22,12 +25,26 @@ export default function Users() {
     loadUsers();
   }, []);
 
-  if (loading) return <div className="container mt-5"><p>Loading users...</p></div>;
-  if (error) return <div className="container mt-5"><p className="text-danger">Error: {error}</p></div>;
+  if (loading) {
+    return (
+      <div className="container mt-5">
+        <p>Loading users...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mt-5">
+        <p className="text-danger">Error: {error}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="container mt-5">
       <h2>Users</h2>
+
       <div className="table-responsive">
         <table className="table table-striped">
           <thead>
@@ -40,10 +57,13 @@ export default function Users() {
               <th>Team</th>
             </tr>
           </thead>
+
           <tbody>
             {users.map((user) => (
               <tr key={user._id}>
-                <td>{user.firstName} {user.lastName}</td>
+                <td>
+                  {user.firstName} {user.lastName}
+                </td>
                 <td>{user.email}</td>
                 <td>{user.age}</td>
                 <td>{user.fitnessLevel}</td>

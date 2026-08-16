@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { fetchLeaderboard } from '../config/api';
+import { getApiUrl } from '../config/api';
 
 export default function Leaderboard() {
   const [leaderboard, setLeaderboard] = useState([]);
@@ -10,7 +10,10 @@ export default function Leaderboard() {
     const loadLeaderboard = async () => {
       try {
         setLoading(true);
-        const data = await fetchLeaderboard();
+
+        const response = await fetch(getApiUrl('/api/leaderboard/'));
+        const data = await response.json();
+
         setLeaderboard(Array.isArray(data) ? data : data.results || []);
       } catch (err) {
         setError(err.message);
@@ -22,12 +25,26 @@ export default function Leaderboard() {
     loadLeaderboard();
   }, []);
 
-  if (loading) return <div className="container mt-5"><p>Loading leaderboard...</p></div>;
-  if (error) return <div className="container mt-5"><p className="text-danger">Error: {error}</p></div>;
+  if (loading) {
+    return (
+      <div className="container mt-5">
+        <p>Loading leaderboard...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mt-5">
+        <p className="text-danger">Error: {error}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="container mt-5">
       <h2>Leaderboard</h2>
+
       <div className="table-responsive">
         <table className="table table-striped">
           <thead>
@@ -38,6 +55,7 @@ export default function Leaderboard() {
               <th>Streak Days</th>
             </tr>
           </thead>
+
           <tbody>
             {leaderboard.map((entry) => (
               <tr key={entry._id}>
@@ -47,9 +65,18 @@ export default function Leaderboard() {
                   {entry.rank === 3 && '🥉'}
                   {entry.rank > 3 && entry.rank}
                 </td>
-                <td>{entry.user?.firstName} {entry.user?.lastName}</td>
-                <td className="fw-bold">{entry.points}</td>
-                <td>{entry.streakDays} days</td>
+
+                <td>
+                  {entry.user?.firstName} {entry.user?.lastName}
+                </td>
+
+                <td className="fw-bold">
+                  {entry.points}
+                </td>
+
+                <td>
+                  {entry.streakDays} days
+                </td>
               </tr>
             ))}
           </tbody>

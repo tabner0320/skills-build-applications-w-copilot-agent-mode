@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { fetchActivities } from '../config/api';
+import { getApiUrl } from '../config/api';
 
 export default function Activities() {
   const [activities, setActivities] = useState([]);
@@ -10,7 +10,10 @@ export default function Activities() {
     const loadActivities = async () => {
       try {
         setLoading(true);
-        const data = await fetchActivities();
+
+        const response = await fetch(getApiUrl('/api/activities/'));
+        const data = await response.json();
+
         setActivities(Array.isArray(data) ? data : data.results || []);
       } catch (err) {
         setError(err.message);
@@ -32,12 +35,26 @@ export default function Activities() {
     });
   };
 
-  if (loading) return <div className="container mt-5"><p>Loading activities...</p></div>;
-  if (error) return <div className="container mt-5"><p className="text-danger">Error: {error}</p></div>;
+  if (loading) {
+    return (
+      <div className="container mt-5">
+        <p>Loading activities...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mt-5">
+        <p className="text-danger">Error: {error}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="container mt-5">
       <h2>Activities</h2>
+
       <div className="table-responsive">
         <table className="table table-striped">
           <thead>
@@ -51,10 +68,13 @@ export default function Activities() {
               <th>Notes</th>
             </tr>
           </thead>
+
           <tbody>
             {activities.map((activity) => (
               <tr key={activity._id}>
-                <td>{activity.user?.firstName} {activity.user?.lastName}</td>
+                <td>
+                  {activity.user?.firstName} {activity.user?.lastName}
+                </td>
                 <td>{activity.type}</td>
                 <td>{activity.durationMinutes}</td>
                 <td>{activity.distanceKm}</td>
