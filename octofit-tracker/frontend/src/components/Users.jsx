@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react';
-import { getApiUrl } from '../config/api';
+import { useEffect, useState } from 'react';
 
 export default function Users() {
   const [users, setUsers] = useState([]);
@@ -10,11 +9,27 @@ export default function Users() {
     const loadUsers = async () => {
       try {
         setLoading(true);
+        setError(null);
 
-        const response = await fetch(getApiUrl('/api/users/'));
+        const apiUrl = import.meta.env.VITE_CODESPACE_NAME
+          ? `https://${import.meta.env.VITE_CODESPACE_NAME}-8000.app.github.dev/api/users/`
+          : 'http://localhost:8000/api/users/';
+
+        const response = await fetch(apiUrl);
+
+        if (!response.ok) {
+          throw new Error(
+            `Failed to load users. Status: ${response.status}`
+          );
+        }
+
         const data = await response.json();
 
-        setUsers(Array.isArray(data) ? data : data.results || []);
+        const userList = Array.isArray(data)
+          ? data
+          : data.results || data.users || [];
+
+        setUsers(userList);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -28,7 +43,9 @@ export default function Users() {
   if (loading) {
     return (
       <div className="container mt-5">
-        <p>Loading users...</p>
+        <div className="text-center">
+          <p>Loading users...</p>
+        </div>
       </div>
     );
   }
@@ -36,44 +53,73 @@ export default function Users() {
   if (error) {
     return (
       <div className="container mt-5">
-        <p className="text-danger">Error: {error}</p>
+        <div className="alert alert-danger" role="alert">
+          <strong>Unable to load users.</strong>
+          <br />
+          {error}
+        </div>
       </div>
     );
   }
 
   return (
     <div className="container mt-5">
-      <h2>Users</h2>
+      <div className="mb-4">
+        <h2>Users</h2>
 
-      <div className="table-responsive">
-        <table className="table table-striped">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Age</th>
-              <th>Fitness Level</th>
-              <th>Points</th>
-              <th>Team</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {users.map((user) => (
-              <tr key={user._id}>
-                <td>
-                  {user.firstName} {user.lastName}
-                </td>
-                <td>{user.email}</td>
-                <td>{user.age}</td>
-                <td>{user.fitnessLevel}</td>
-                <td>{user.points}</td>
-                <td>{user.team?.name || 'N/A'}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <p className="text-muted">
+          View OctoFit Tracker members and their fitness progress.
+        </p>
       </div>
+
+      {users.length === 0 ? (
+        <div className="alert alert-info">
+          No users are currently available.
+        </div>
+      ) : (
+        <div className="table-responsive">
+          <table className="table table-striped table-hover align-middle">
+            <thead className="table-dark">
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Age</th>
+                <th>Fitness Level</th>
+                <th>Points</th>
+                <th>Team</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {users.map((user) => (
+                <tr key={user._id}>
+                  <td>
+                    {`${user.firstName ?? ''} ${
+                      user.lastName ?? ''
+                    }`.trim() || 'N/A'}
+                  </td>
+
+                  <td>{user.email || 'N/A'}</td>
+
+                  <td>{user.age ?? 'N/A'}</td>
+
+                  <td>
+                    {user.fitnessLevel || 'N/A'}
+                  </td>
+
+                  <td className="fw-bold">
+                    {user.points ?? 0}
+                  </td>
+
+                  <td>
+                    {user.team?.name || 'N/A'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }
